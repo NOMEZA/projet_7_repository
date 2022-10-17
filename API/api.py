@@ -3,10 +3,13 @@ from flask import Flask
 import json
 import pandas as pd
 import pickle as pk
+import numpy as np
 
 with open('../python_preprocessing/finalized_model.pickle', 'rb') as handle:
     model= pk.load(handle)
-data_pred_score=pd.read_csv("../python_preprocessing/df_predict_score")
+data_raw=pd.read_csv("../python_preprocessing/data_test_project.csv")
+# feature_importances = pd read csv features.csv
+data_raw = data_raw.set_index("SK_ID_CURR")
 app = Flask(__name__)
 df=pd.read_csv("../python_preprocessing/data_useful.csv")
 #print(df)
@@ -17,7 +20,14 @@ df=df.set_index('SK_ID_CURR') # methode de fixer, transformer une colonne en une
 
 @app.route("/get_id_client", methods=['GET'])
 def get_id_client():
-    return list(df.index)
+    return json.dumps({"data":list(data_raw.index)})
+
+@app.route("get_feature_importance", methods=['GET'])
+def get_feature_importance():
+    name_features = feature_importances["feature"]
+    importance_feature = feature_importances["importance"]
+    return json.dumps({"feature": list(name_features), "importance": list(importance_feature}))
+
 @app.route("/get_score/<id_client>", methods=['GET']) # c'est mon routeur et on a rendu la route dynamique pour éviter de taper une route de milliers id_client
 def get_score(id_client):
     '''
@@ -27,18 +37,14 @@ def get_score(id_client):
         id_client:
     Returns: score du client qui calcule sa solvabilité
     '''
-    data_pred=data_pred_score
-    prediction=model.predict_proba(data_pred)
-    print(prediction)
-
-    return json.dumps({"id_client": id_client, "prediction": prediction}) # erreur sur json.dump, en réalité , je dois remplacer par json.dumps pour qu'il fonctionne
+    data_client = data_raw.loc[int(id_client)]
+    prediction=model.predict_proba(np.array(data_client).reshape(1, -1))
+    prediction_user = list(prediction[0])
+    return json.dumps({"id_client": id_client, "prediction": prediction_user}) # erreur sur json.dump, en réalité , je dois remplacer par json.dumps pour qu'il fonctionne
 
 @app.route("/get_info_client/<id_client>", methods=['GET']) # qui visualise les informations du client et les graphiques associés, et qui appelle l’API via une url pour récupérer le score du client
 def get_info_client(id_client):
     info_client=df.loc[int(id_client)]   # mon paramètre id_client ne change pas, c'est ma fonction qui change
-
-
-
 
     return json.dumps({"info_client": info_client.to_dict()}) # on a transformé une serie en dictionnaire erreur sur json.dump, en réalité , je dois r
 
