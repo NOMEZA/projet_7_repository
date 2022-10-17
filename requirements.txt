@@ -4,3 +4,6 @@ dash
 flask
 matplotlib
 seaborn
+lightgbm
+requests
+
