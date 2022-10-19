@@ -1,26 +1,26 @@
 # Run this app with `python app.py` and
 # visit http://127.0.0.1:8050/ in your web browser.
 
-from dash import Dash, html,dcc, Input, Output
-import dash_bootstrap_components as dbc
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
+
+
+import dash_daq as daq
+import dash_bootstrap_components
 import pandas as pd
 import requests
-import dash_daq as daq
-from json import loads # interpreter mon json et change en liste (transformer la representation de chaine de caractère  de la liste en liste python puisque le rendu ressemble en une liste de liste)
+from dash import Dash, html, dcc, Input, Output
 
 # all request here
-#req=requests.get("http://127.0.0.1:5000/get_score/12")
-data=requests.get("http://127.0.0.1:5000/get_info_client/100002").json()
+#data = requests.get(f"http://127.0.0.1:5000/get_feature_importance").json()
+req=requests.get("http://127.0.0.1:5000/get_score/193423").json()
+data=requests.get("http://127.0.0.1:5000/get_info_client/193423").json()
 data=pd.Series(data['info_client']).to_frame()
 id_client=requests.get("http://127.0.0.1:5000/get_id_client").json()
 id_client=id_client["data"][:30] # les 30 premiers
-df=requests.get("http://127.0.0.1:5000/get_correlation").json()
-df=pd.Series(df['correlation']).to_frame()
-df=requests.get("http://127.0.0.1:5000/relevant_features").json()
-#print (id_client)
-x=['DAYS_BIRTH', 'DAYS_EMPLOYED', 'EXT_SOURCE_1', 'EXT_SOURCE_2', 'EXT_SOURCE_3', 'AMT_INCOME_TOTAL', 'AMT_ANNUITY']
+#df=requests.get("http://127.0.0.1:5000/get_correlation").json()
+#df=pd.Series(df['correlation']).to_frame()
+# df=requests.get("http://127.0.0.1:5000/relevant_features").json()
+# print (id_client)
+# x=['DAYS_BIRTH', 'DAYS_EMPLOYED', 'EXT_SOURCE_1', 'EXT_SOURCE_2', 'EXT_SOURCE_3', 'AMT_INCOME_TOTAL', 'AMT_ANNUITY']
 
 def generate_table(dataframe, max_rows=10):
     return html.Table([
@@ -67,21 +67,39 @@ app.layout = html.Div(
                 min=0,
                 ),
             ]),
-        # html.Div()
+        html.Div([
+            dcc.Graph(
+                id="pie_chart",
+                config={
+                    "DisplayModeBar": "hover"
+                }
+            )
+        ]),
+        html.Div([
+            dcc.RadioItems(
+                id='radio-items',
+                labelStyle={"display": "inline-block"},
+                value="feature",
+                options=[{'label': 'feature', 'value': 'feature'},
+                         {'label': 'Importance', 'value': 'Importance'}],
+            ),
+            dcc.Graph(id = 'bar_chart',
+                      config = {'displayModeBar': 'hover'}, style = {'height': '350px'}),
+
+
+        ])
     ]
 )
 
-# histogramm chart
-""" @app.callback(
-    Output('histo_feature', 'value'),
-    Input('current_id_user', 'value')
+# bar chart
+"""@app.callback(
+    Output('bar_chart', 'value'),
+    Input('radio-items', 'value')
 )
-def update_histogram(id_user):
-    data = requests.get(f"http://127.0.0.1:5000/relevant_features/{id_user}").json()
-    data = ['DAYS_BIRTH', 'DAYS_EMPLOYED', 'EXT_SOURCE_1', 'EXT_SOURCE_2', 'EXT_SOURCE_3', 'AMT_INCOME_TOTAL',
-                     'AMT_ANNUITY']
-    data=pd.Series(data['relevant'])
-    return data """
+def update_bar_cart(id_user):
+    dataf = requests.get(f"http://127.0.0.1:5000/get_feature_importance").json()
+    dataf=pd.Series(data[data])
+    return data"""
 
 @app.callback(
     Output('gauge_solvabilite_client', 'value'),

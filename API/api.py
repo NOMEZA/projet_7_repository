@@ -8,7 +8,7 @@ import numpy as np
 with open('../python_preprocessing/finalized_model.pickle', 'rb') as handle:
     model= pk.load(handle)
 data_raw=pd.read_csv("../python_preprocessing/data_test_project.csv")
-# feature_importances = pd read csv features.csv
+my_features=pd.read_csv("../python_preprocessing/features.csv")
 data_raw = data_raw.set_index("SK_ID_CURR")
 app = Flask(__name__)
 df=pd.read_csv("../python_preprocessing/data_useful.csv")
@@ -22,13 +22,14 @@ df=df.set_index('SK_ID_CURR') # methode de fixer, transformer une colonne en une
 def get_id_client():
     return json.dumps({"data":list(data_raw.index)})
 
-@app.route("get_feature_importance", methods=['GET'])
-def get_feature_importance():
-    name_features = feature_importances["feature"]
-    importance_feature = feature_importances["importance"]
-    return json.dumps({"feature": list(name_features), "importance": list(importance_feature}))
 
-@app.route("/get_score/<id_client>", methods=['GET']) # c'est mon routeur et on a rendu la route dynamique pour éviter de taper une route de milliers id_client
+@app.route("/get_feature_importance", methods=['GET'])
+def get_feature_importance():
+    name_features = my_features["feature"]
+    importance_feature = my_features["importance"]
+    return json.dumps({"feature": list(name_features), "importance": list(importance_feature)}) #j'ai mis en list puisque le format json est un langage formaté, il ne prend pas d'objet python à l'intérieur
+
+@app.route("/get_score/<id_client>", methods=['GET']) #c'est mon routeur et on a rendu la route dynamique pour éviter de taper une route de milliers id_client
 def get_score(id_client):
     '''
     fonction qui charge le modèle pickle
@@ -56,11 +57,11 @@ def get_correlation():
     corr= df_column.corr()
     return json.dumps({"correlation": corr.to_dict()}) # il renvoie une erreur lorsqu'on traduit pas en dict
 
-@app.route("/relevant_features", methods=['GET']) # rappel route est toujours suivi par une df
-def relevant_feature():
+""""@app.route("/relevant_features", methods=['GET'])""" #rappel route est toujours suivi par une df
+"""def relevant_feature():
     cols_relevant = ['DAYS_BIRTH', 'DAYS_EMPLOYED', 'EXT_SOURCE_1', 'EXT_SOURCE_2', 'EXT_SOURCE_3', 'AMT_INCOME_TOTAL', 'AMT_ANNUITY']
     relevant=df[cols_relevant]
-    return json.dumps({"relevant": relevant.to_dict()})
+    return json.dumps({"relevant": relevant.to_dict()})"""
 
 
 
