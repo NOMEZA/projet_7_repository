@@ -4,24 +4,26 @@
 
 
 import dash_daq as daq
-import dash_bootstrap_components
+import dash_bootstrap_components as dbc
 import pandas as pd
 import requests
-from dash import Dash, html, dcc, Input, Output
-
+import plotly.express as px
+from dash import Dash, html, dcc, Input, Output, dash_table
+import plotly.graph_objects as go
 # all request here
 #data = requests.get(f"http://127.0.0.1:5000/get_feature_importance").json()
-req=requests.get("http://127.0.0.1:5000/get_score/193423").json()
-data=requests.get("http://127.0.0.1:5000/get_info_client/193423").json()
-data=pd.Series(data['info_client']).to_frame()
+CURRENT_CLIENT_ID = 193423
+req=requests.get(f"http://127.0.0.1:5000/get_score/{CURRENT_CLIENT_ID}").json()
+info_client=requests.get(f"http://127.0.0.1:5000/get_info_client/{CURRENT_CLIENT_ID}").json()
+info_client=pd.Series(info_client['info_client']).to_frame().T.iloc[:,2:]
 id_client=requests.get("http://127.0.0.1:5000/get_id_client").json()
 id_client=id_client["data"][:30] # les 30 premiers
+
 #df=requests.get("http://127.0.0.1:5000/get_correlation").json()
 #df=pd.Series(df['correlation']).to_frame()
 # df=requests.get("http://127.0.0.1:5000/relevant_features").json()
 # print (id_client)
 # x=['DAYS_BIRTH', 'DAYS_EMPLOYED', 'EXT_SOURCE_1', 'EXT_SOURCE_2', 'EXT_SOURCE_3', 'AMT_INCOME_TOTAL', 'AMT_ANNUITY']
-
 def generate_table(dataframe, max_rows=10):
     return html.Table([
         html.Thead(
@@ -34,7 +36,7 @@ def generate_table(dataframe, max_rows=10):
         ])
     ])
 # Instanciate the app
-app = Dash(__name__)
+app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 # Build layout
 app.layout = html.Div(
@@ -48,46 +50,90 @@ app.layout = html.Div(
                 )
             ],
         ),
+        html.H1(f"Welcome user {CURRENT_CLIENT_ID} !"),
+        dash_table.DataTable(
+            info_client.to_dict('records'),
+            [{"name": str(i), "id": str(i)} for i in info_client.columns]
+        ),
+        html.H1("Feature importance of the model"),
+        html.Img(src="assets/lgbm_importances01.png", height=400),
+        # gestion des autres clients
+        html.H1("Other clients"),
+
         html.Div([
-            html.P("select Id Client"),
-            dcc.Dropdown(
-                id_client,
-                id='current_id_user',
-                value = 193423,
-                placeholder = "Select Id client",
-            ),
-        ]),
-        html.Div([ 
-            daq.Gauge(
-                id='gauge_solvabilite_client',
-                color={"gradient":True,"ranges":{"green":[0,0.3],"yellow":[0.3,0.6],"red":[0.6,1]}},
-                value=0.5,
-                label='Default',
-                max=1,
-                min=0,
-                ),
+            dbc.Row([
+                dbc.Col([
+                    html.Div([
+                        html.P("select Id Client"),
+                        dcc.Dropdown(
+                            id_client,
+                            id='current_id_user',
+                            value = 193423,
+                            placeholder = "Select Id client",
+                        ),
+                    ]),
+                ], width=4),
+                dbc.Col([
+                    html.P("select feature 1"),
+                    dcc.Dropdown(
+                        info_client.columns,
+                        id='feature1',
+                        value = info_client.columns[0],
+                        placeholder = "Select feature 1",
+                    ),
+                ], width=4),
+                dbc.Col([
+                    html.P("select feature 2"),
+                    dcc.Dropdown(
+                        info_client.columns,
+                        id='feature2',
+                        value = info_client.columns[1],
+                        placeholder = "Select feature 2",
+                    ),
+                ], width=4),
             ]),
-        html.Div([
-            dcc.Graph(
-                id="pie_chart",
-                config={
-                    "DisplayModeBar": "hover"
-                }
-            )
+            
+            dbc.Row([
+                dbc.Col([
+                    dcc.Graph(id='scatter_plot_bivarie')
+                    ], width=12)
+            ]),
+            dbc.Row([
+                dbc.Col([
+                    daq.Gauge(
+                        id='gauge_solvabilite_client',
+                        color={"gradient":True,"ranges":{"green":[0,0.3],"yellow":[0.3,0.6],"red":[0.6,1]}},
+                        value=0.5,
+                        label='Default',
+                        max=1,
+                        min=0,
+                ),
+                ], width=12),
         ]),
-        html.Div([
-            dcc.RadioItems(
-                id='radio-items',
-                labelStyle={"display": "inline-block"},
-                value="feature",
-                options=[{'label': 'feature', 'value': 'feature'},
-                         {'label': 'Importance', 'value': 'Importance'}],
-            ),
-            dcc.Graph(id = 'bar_chart',
-                      config = {'displayModeBar': 'hover'}, style = {'height': '350px'}),
-
-
         ])
+
+        
+        # html.Div([
+        #     dcc.Graph(
+        #         id="pie_chart",
+        #         config={
+        #             "DisplayModeBar": "hover"
+        #         }
+        #     )
+        # ]),
+        # html.Div([
+        #     dcc.RadioItems(
+        #         id='radio-items',
+        #         labelStyle={"display": "inline-block"},
+        #         value="feature",
+        #         options=[{'label': 'feature', 'value': 'feature'},
+        #                  {'label': 'Importance', 'value': 'Importance'}],
+        #     ),
+        #     dcc.Graph(id = 'bar_chart',
+        #               config = {'displayModeBar': 'hover'}, style = {'height': '350px'}),
+
+
+        # ])
     ]
 )
 
@@ -106,9 +152,59 @@ def update_bar_cart(id_user):
     Input('current_id_user', 'value'))
 def update_gauge_value(id_user):
     #print(id_user) # c'est l'id lorsqu'on change des valeurs dans la liste déroulante
-    data = requests.get(f"http://127.0.0.1:5000/get_score/{id_user}").json()
-    print(data)
-    prediction = float(data["prediction"][1])
+    score_client= requests.get(f"http://127.0.0.1:5000/get_score/{id_user}").json()
+    prediction = float(score_client["prediction"][1])
     return prediction
+
+@app.callback(
+    Output('scatter_plot_bivarie', 'figure'),
+    Input('feature1', 'value'),
+    Input('feature2', 'value'),
+    Input('current_id_user', 'value'))
+def update_graph(feature1, feature2, id_client):
+    info_client=requests.get(f"http://127.0.0.1:5000/get_info_client/{id_client}").json()
+    info_client=pd.Series(info_client['info_client']).to_frame().T.iloc[:,2:]
+    feature1_data= requests.get(f"http://127.0.0.1:5000/get_feature/{feature1}").json()["data"]
+    feature2_data= requests.get(f"http://127.0.0.1:5000/get_feature/{feature2}").json()["data"]
+    fig = go.Figure()
+
+    # Add scatter trace with medium sized markers
+    fig.add_trace(
+        go.Scatter(
+            mode='markers',
+            x=feature1_data,
+            y=feature2_data,
+            marker=dict(
+                color='LightSkyBlue',
+                size=5,
+                line=dict(
+                    color='MediumPurple',
+                    width=2
+                )
+            ),
+            showlegend=False
+        )
+    )
+    # Add trace with large marker
+    fig.add_trace(
+        go.Scatter(
+            mode='markers',
+            x=[info_client[feature1][0]],
+            y=[info_client[feature2][0]],
+            marker=dict(
+                color='red',
+                size=40,
+                line=dict(
+                    color='red',
+                    width=12
+                )
+            ),
+            showlegend=False
+        )
+    )
+    fig.update_xaxes(title=feature1)
+    fig.update_yaxes(title=feature2,)
+    return fig
+
 if __name__ == '__main__':
     app.run_server(debug=True, port=8000)
