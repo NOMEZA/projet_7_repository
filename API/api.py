@@ -22,6 +22,9 @@ df=df.set_index('SK_ID_CURR') # methode de fixer, transformer une colonne en une
 def get_id_client():
     return json.dumps({"data":list(data_raw.index)})
 
+@app.route("/get_feature/<name_feature>", methods=['GET'])
+def get_feature(name_feature):
+    return json.dumps({"data":list(data_raw[name_feature])})
 
 @app.route("/get_feature_importance", methods=['GET'])
 def get_feature_importance():
