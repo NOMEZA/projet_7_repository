@@ -12,7 +12,7 @@ my_features=pd.read_csv("../python_preprocessing/features.csv")
 data_raw = data_raw.set_index("SK_ID_CURR")
 app = Flask(__name__)
 df=pd.read_csv("../python_preprocessing/data_useful.csv")
-#print(df)
+print(df)
 df=df.set_index('SK_ID_CURR') # methode de fixer, transformer une colonne en une clé, on peut accéder la valeur de la ligne par la clé qui est id_client
 # comme dictionnaire avec une clé, comme une masque  à une seule valeur mais normalement, le masque est à plusieurs valeurs
 

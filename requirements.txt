@@ -7,6 +7,6 @@ seaborn
 lightgbm
 requests
 dash_daq
-dash_boostrap_components
+dash-bootstrap-components
 
 
