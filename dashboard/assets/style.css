@@ -1,0 +1,31 @@
+body {
+  background-color: #EAFAF1   ;
+  margin: 5%;
+}
+
+#header {
+  align-items: center;
+}
+
+#title {
+  text-align: center;
+}
+
+.flex-display {
+  display: flex;
+}
+
+.dcc_compon {
+  margin: 0;
+  padding: 5px;
+  width: calc(100%-40px);
+}
+
+.create_container {
+  border-radius: 5px;
+  background-color: #010915;
+  margin: 18px;
+  padding: 15px;
+  position: relative;
+  box-shadow: 2px 2px 2px #010915;
+}

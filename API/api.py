@@ -53,7 +53,7 @@ def get_info_client(id_client):
     return json.dumps({"info_client": info_client.to_dict()}) # on a transformé une serie en dictionnaire erreur sur json.dump, en réalité , je dois r
 
 
-@app.route("/get_correlation/", methods=['GET']) # analyse bivariée ntre les deux features sélectionnées, avec un dégradé de couleur selon le score des clients, et le positionnement du client
+@app.route("/get_correlation/", methods=['GET']) # analyse bivariée entre les deux features sélectionnées, avec un dégradé de couleur selon le score des clients, et le positionnement du client
 def get_correlation():
     col = ['TARGET', 'EXT_SOURCE_1', 'EXT_SOURCE_2', 'EXT_SOURCE_3', 'DAYS_BIRTH', 'AMT_INCOME_TOTAL', 'AMT_ANNUITY', 'DAYS_EMPLOYED']
     df_column = df[col]

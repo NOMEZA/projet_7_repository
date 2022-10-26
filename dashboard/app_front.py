@@ -16,6 +16,7 @@ CURRENT_CLIENT_ID = 193423
 req=requests.get(f"http://127.0.0.1:5000/get_score/{CURRENT_CLIENT_ID}").json()
 info_client=requests.get(f"http://127.0.0.1:5000/get_info_client/{CURRENT_CLIENT_ID}").json()
 info_client=pd.Series(info_client['info_client']).to_frame().T.iloc[:,2:]
+# print(info_client)
 id_client=requests.get("http://127.0.0.1:5000/get_id_client").json()
 id_client=id_client["data"][:30] # les 30 premiers
 
@@ -44,21 +45,60 @@ app.layout = html.Div(
         # titre principal
         html.Div([
             html.Div([
-                html.H3("Dashboard sur le remboursement de credit"),
-                html.H5("Projet 7")
-                    ]
+                html.H1("Dashboard sur le remboursement de credit",
+                        style={
+                    "margin-top": "0px",
+                    "color": "Black"
+				}
+                        ),
+                html.H2("Projet 7", style={
+                                    "margin-bottom": "0px",
+                                    "color": "Black"
+					                }),
+                    ],id="title"
                 )
-            ],
+            ],id = "header",
+			className = "row flex-display",
+			style = {
+            "margin-bottom":"25px"
+            }
         ),
-        html.H1(f"Welcome user {CURRENT_CLIENT_ID} !"),
+        html.H4(f"Welcome user {CURRENT_CLIENT_ID} !"), html.H1(f"", className = "row flex-display",
+                                        style = {
+                                            "margin-bottom":"25px"
+                                        }),
         dash_table.DataTable(
             info_client.to_dict('records'),
-            [{"name": str(i), "id": str(i)} for i in info_client.columns]
+            [{"name": str(i), "id": str(i)} for i in info_client.columns],
         ),
-        html.H1("Feature importance of the model"),
-        html.Img(src="assets/lgbm_importances01.png", height=400),
-        # gestion des autres clients
-        html.H1("Other clients"),
+        html.Br(),
+        html.Div(
+            [
+                dbc.Row([
+                    dbc.Col([
+                        html.Div([
+                            html.H4("Feature importance of the model", className = "row flex-display",
+                                        style = {
+                                            "margin-bottom":"25px"
+                                        }),
+                            html.Img(src="assets/lgbm_importances01.png", height=400),
+                        ])
+                    ], width=6),
+                    dbc.Col([
+                        html.Div([
+                            html.H4("Distribution of Ages", className = "row flex-display",
+                                        style = {
+                                            "margin-bottom":"25px"
+                                        }),
+                            html.Img(src="assets/distribution_age_credit.png", height=400),
+
+                        ])
+                    ], width=6),
+                ]),
+            ]
+        ),
+        # Gestion des autres clients
+        html.H4("Other clients"),
 
         html.Div([
             dbc.Row([
@@ -92,27 +132,28 @@ app.layout = html.Div(
                     ),
                 ], width=4),
             ]),
-            
             dbc.Row([
                 dbc.Col([
-                    dcc.Graph(id='scatter_plot_bivarie')
-                    ], width=12)
+                    html.Div([
+                        dcc.Graph(id = 'scatter_plot_bivarie')
+                    ], className = "create_container"),
+                ], width=6),
+                dbc.Col([
+                    html.Div([
+                        daq.Gauge(
+                            id='gauge_solvabilite_client',
+                            color={"gradient": True,
+                                   "ranges": {"green": [0, 0.3], "yellow": [0.3, 0.6], "red": [0.6, 1]}},
+                            value=0.5,
+                            label='Default',
+                            max=1,
+                            min=0,
+                        ),
+                    ], className = "create_container"),
+                ], width=6),
             ]),
-            dbc.Row([
-                dbc.Col([
-                    daq.Gauge(
-                        id='gauge_solvabilite_client',
-                        color={"gradient":True,"ranges":{"green":[0,0.3],"yellow":[0.3,0.6],"red":[0.6,1]}},
-                        value=0.5,
-                        label='Default',
-                        max=1,
-                        min=0,
-                ),
-                ], width=12),
-        ]),
         ])
 
-        
         # html.Div([
         #     dcc.Graph(
         #         id="pie_chart",
