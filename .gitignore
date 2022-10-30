@@ -1,3 +1,5 @@
 input
 dev-env
 .idea
+*.csv
+.ipynb_checkpoints
