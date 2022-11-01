@@ -42,7 +42,21 @@ app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 # Build layout
 app.layout = html.Div(
     [
-        # titre principal
+        # Logo
+        html.Div([
+            html.Img(
+                src="assets/logo_data.png",
+                style={
+                    "float": "left",
+                    "height": "65px",
+                    "margin-right": "1%",
+                    "margin-top": "-0px",
+                },
+            ),
+        ]),
+        html.Br(),
+        html.Br(),
+        #titre principal
         html.Div([
             html.Div([
                 html.H1("Dashboard sur le remboursement de credit",
@@ -248,4 +262,5 @@ def update_graph(feature1, feature2, id_client):
     return fig
 
 if __name__ == '__main__':
-    app.run_server(debug=True, host='0.0.0.0', port=80)
+    app.run_server(debug=True, port=8000)
+    #app.run_server(debug=True, host='0.0.0.0', port=80)

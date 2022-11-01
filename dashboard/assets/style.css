@@ -11,6 +11,12 @@ body {
   text-align: center;
 }
 
+#bloc_page
+{
+    width: 1000px;
+    margin: auto;
+}
+
 .flex-display {
   display: flex;
 }
