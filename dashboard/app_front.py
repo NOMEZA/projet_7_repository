@@ -13,7 +13,7 @@ import plotly.graph_objects as go
 # all request here
 #data = requests.get(f"http://127.0.0.1:5000/get_feature_importance").json()
 CURRENT_CLIENT_ID = 193423
-ip_address = "127.0.0.1:5000"
+ip_address = "http://15.237.51.88/"
 req=requests.get(f"http://{ip_address}/get_score/{CURRENT_CLIENT_ID}").json()
 info_client=requests.get(f"http://{ip_address}/get_info_client/{CURRENT_CLIENT_ID}").json()
 info_client=pd.Series(info_client['info_client']).to_frame().T.iloc[:,2:]
